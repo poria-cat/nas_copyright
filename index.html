@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>版权登记</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+    <style>
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="https://bulma.io">
+                    Copyright
+                </a>
+
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="container is-fluid">
+            <section class="hero">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">
+                            登记基本信息，然后上传
+                        </h1>
+                        <h2 class="subtitle">
+                            你的文章将被计算为md5，并且同时间戳一同登记到星云链上
+                        </h2>
+                    </div>
+                </div>
+            </section>
+
+            <div class="tabs is-centered">
+                <ul>
+                    <li class="is-active">
+                        <a v-on:click="hideSearch">登记</a>
+                    </li>
+                    <li>
+                        <a v-on:click="hideStore">查看</a>
+                    </li>
+
+                </ul>
+            </div>
+            <div id="store" v-bind:class="{ hide: isStore }">
+                <div class="field">
+                    <label class="label">文章名</label>
+                    <div class="control">
+                        <input id="title" v-model="title" class="input" type="text" placeholder="输入文章的名字">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">备注</label>
+                    <div class="control">
+                        <textarea class="textarea" v-model="message" placeholder="这里是备注"></textarea>
+                    </div>
+                </div>
+
+                <div class="columns">
+                    <div class="column"></div>
+
+                    <div class="column">
+                        <div class="file">
+                            <label class="file-label is-centered">
+                                <input id="getFileMd5" class="file-input" type="file" name="resume">
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <i class="fas fa-upload"></i>
+                                    </span>
+                                    <span class="file-label">
+                                        选择文件
+                                    </span>
+                                </span>
+                                <span class="file-name">
+                                    {{md5}}
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+
+                    <div class="column">
+                        <div class="file is-centered">
+                            <label class="file-label">
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <i class="fas fa-upload"></i>
+                                    </span>
+                                    <span class="file-label" v-on:click="store">
+                                        记录到区块链
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <br>
+            </div>
+
+
+            <div id="search" v-bind:class="{ hide: isSearch }">
+                <div class="field">
+                    <label class="label">版权ID</label>
+                    <div class="control">
+                        <input id="articleId" v-model="getById" class="input" type="text" placeholder="输入ID">
+                    </div>
+                </div>
+                <br>
+                <br>
+                <br>
+                <button v-on:click="find" class="button is-primary is-centered">查询</button>
+                <br>
+
+                <div class="box">
+                <p>作者：{{author}} </p>
+                <p>标题： {{title}}</p>
+                <p>MD5: {{this.md5}} </p>
+                <p>版权ID： {{this.id}}</p>
+
+                    </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="content has-text-centered">
+                <p>
+                    <strong>版权登记</strong> 由 星云链驱动，点此参加
+                    <a href="https://incentive.nebulas.io/cn/signup.html?invite=zmyxR">星云开发者激励计划！</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.bootcss.com/spark-md5/2.0.0/spark-md5.min.js"></script>
+    <script src=lib/nebPay.js></script>
+    <script src=lib/nebulas.js></script>
+    <script>
+
+        // var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
+        var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
+        // txhash = "19c62b75e4f69affc6b8a601aaf0962207e2b8a41e42019b2bb74fb6d3ff9d3f"
+
+        var nebulas = require("nebulas"),
+            Account = nebulas.Account,
+            neb = new nebulas.Neb();
+        neb.setRequest(new nebulas.HttpRequest("https://testnet.nebulas.io"));
+
+        var NebPay = require("nebpay");     //https://github.com/nebulasio/nebPay
+        var nebPay = new NebPay();
+        var serialNumber
+        var intervalQuery
+
+        function funcIntervalQuery() {
+            nebPay.queryPayInfo(serialNumber)   //search transaction result from server (result upload to server by app)
+                .then(function (resp) {
+                    // console.log("tx result: " + resp)   //resp is a JSON string
+                    var respObject = JSON.parse(resp)
+                    if (respObject.code === 0) {
+                        alert(`版权： ${app.$data.id} 创建成功！`)
+                        clearInterval(intervalQuery)
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+
+        function cbPush(resp) {
+            // console.log("response of push: " + JSON.stringify(resp))
+
+        }
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                title: "",
+                md5: "",
+                message: "",
+                isStore: false,
+                isSearch: true,
+                modelActive: false,
+                id: "",
+                getById: "",
+                author: ""
+            },
+            methods: {
+                hideStore: function (event) {
+                    // `this` 在方法里指向当前 Vue 实例
+                    this.isStore = true
+                    this.isSearch = false
+                },
+                hideSearch: function () {
+                    this.isSearch = true
+                    this.isStore = false
+                },
+                store: function () {
+
+                    const id = Account.NewAccount().getAddressString();
+                    this.id = id
+                    const title = this.title
+                    const md5 = this.md5
+                    const message = this.message
+                    var to = dappAddress;
+                    var amount = "0";
+                    var callFunction = "save"
+                    var callArgs = "[\"" + id + "\", \"" + title + "\", \"" + md5 + "\", \"" + message + "\"]"
+                    // "[\"" + key + "\",\"" + value + "\"]"
+
+                    serialNumber = nebPay.call(to, amount, callFunction, callArgs, {    //使用nebpay的call接口去调用合约,
+                        listener: cbPush        //设置listener, 处理交易返回信息
+                    });
+
+                    intervalQuery = setInterval(function () {
+                        funcIntervalQuery();
+                    }, 5000);
+                },
+
+                find: function () {
+
+                    var from = Account.NewAccount().getAddressString();
+
+                    var value = "0";
+                    var nonce = "0"
+                    var gas_price = "1000000"
+                    var gas_limit = "2000000"
+                    var callFunction = "get";
+                    var callArgs = "[\"" + this.getById + "\"]"; //in the form of ["args"]
+                    var contract = {
+                        "function": callFunction,
+                        "args": callArgs
+                    }
+
+                    let _this = this
+                    neb.api.call(from, dappAddress, value, nonce, gas_price, gas_limit, contract).then(function (response) {
+                        // cbSearch(resp)
+                        // this.id, this.title, this.md5 = null
+                        const result = JSON.parse(response.result)
+                        _this.id = result.id
+                        _this.title = result.title
+                        _this.md5 = result.md5
+                        _this.author = result.author
+                        console.log(result.id)
+                    }).catch(function (err) {
+                        //cbSearch(err)
+                        console.log("error:" + err.message)
+                    })
+                }
+            }
+        })
+
+
+
+        document.getElementById("getFileMd5").addEventListener("change", function () {
+            var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+                file = this.files[0],
+                chunkSize = 2097152, // read in chunks of 2MB
+                chunks = Math.ceil(file.size / chunkSize),
+                currentChunk = 0,
+                spark = new SparkMD5.ArrayBuffer(),
+                frOnload = function (e) {
+                    //  log.innerHTML+="\nread chunk number "+parseInt(currentChunk+1)+" of "+chunks;
+                    spark.append(e.target.result); // append array buffer
+                    currentChunk++;
+                    if (currentChunk < chunks)
+                        loadNext();
+                    else {
+                        app.$data.md5 = spark.end()
+                    }
+                    // log.innerHTML += "\n加载结束 :\n\n计算后的文件md5:\n" + spark.end() + "\n\n现在你可以选择另外一个文件!\n";
+                },
+                frOnerror = function () {
+                    alert("\糟糕，好像哪里错了.");
+                };
+            function loadNext() {
+                var fileReader = new FileReader();
+                fileReader.onload = frOnload;
+                fileReader.onerror = frOnerror;
+                var start = currentChunk * chunkSize,
+                    end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+                fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+            };
+
+            loadNext();
+        });
+    </script>
+</body>
+
+</html>
