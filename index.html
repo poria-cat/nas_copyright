@@ -128,12 +128,12 @@
                 <br>
 
                 <div class="box">
-                <p>作者：{{author}} </p>
-                <p>标题： {{title}}</p>
-                <p>MD5: {{this.md5}} </p>
-                <p>版权ID： {{this.id}}</p>
+                    <p>作者：{{author}} </p>
+                    <p>标题： {{title}}</p>
+                    <p>MD5: {{this.md5}} </p>
+                    <p>版权ID： {{this.id}}</p>
 
-                    </div>
+                </div>
 
             </div>
         </div>
@@ -154,32 +154,31 @@
     <script src=lib/nebPay.js></script>
     <script src=lib/nebulas.js></script>
     <script>
-
-        // var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
-        var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
-        // txhash = "19c62b75e4f69affc6b8a601aaf0962207e2b8a41e42019b2bb74fb6d3ff9d3f"
+        var dappAddress = "n1n9pvPzXdHHLfB9Rt5JRLy8SFskm4NALkj"
 
         var nebulas = require("nebulas"),
             Account = nebulas.Account,
             neb = new nebulas.Neb();
-        neb.setRequest(new nebulas.HttpRequest("https://testnet.nebulas.io"));
+        neb.setRequest(new nebulas.HttpRequest("https://mainnet.nebulas.io"));
 
-        var NebPay = require("nebpay");     //https://github.com/nebulasio/nebPay
+        var NebPay = require("nebpay"); //https://github.com/nebulasio/nebPay
         var nebPay = new NebPay();
         var serialNumber
         var intervalQuery
 
         function funcIntervalQuery() {
-            nebPay.queryPayInfo(serialNumber)   //search transaction result from server (result upload to server by app)
+            nebPay.queryPayInfo(serialNumber) //search transaction result from server (result upload to server by app)
                 .then(function (resp) {
                     // console.log("tx result: " + resp)   //resp is a JSON string
                     var respObject = JSON.parse(resp)
                     if (respObject.code === 0) {
-                        alert(`版权： ${app.$data.id} 创建成功！`)
+                        alert(`版权：$ {
+ 				app.$data.id
+ 			}创建成功！`)
                         clearInterval(intervalQuery)
                     }
-                })
-                .catch(function (err) {
+                }).
+                catch(function (err) {
                     console.log(err);
                 });
         }
@@ -225,8 +224,8 @@
                     var callArgs = "[\"" + id + "\", \"" + title + "\", \"" + md5 + "\", \"" + message + "\"]"
                     // "[\"" + key + "\",\"" + value + "\"]"
 
-                    serialNumber = nebPay.call(to, amount, callFunction, callArgs, {    //使用nebpay的call接口去调用合约,
-                        listener: cbPush        //设置listener, 处理交易返回信息
+                    serialNumber = nebPay.call(to, amount, callFunction, callArgs, { //使用nebpay的call接口去调用合约,
+                        listener: cbPush //设置listener, 处理交易返回信息
                     });
 
                     intervalQuery = setInterval(function () {
@@ -259,10 +258,12 @@
                         _this.md5 = result.md5
                         _this.author = result.author
                         console.log(result.id)
-                    }).catch(function (err) {
-                        //cbSearch(err)
-                        console.log("error:" + err.message)
-                    })
+                    }).
+                        catch(function (err) {
+                            //cbSearch(err)
+                            console.log("error:" + err.message)
+                            alert("此文章还没登记")
+                        })
                 }
             }
         })
@@ -272,7 +273,8 @@
         document.getElementById("getFileMd5").addEventListener("change", function () {
             var blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
                 file = this.files[0],
-                chunkSize = 2097152, // read in chunks of 2MB
+                chunkSize = 2097152,
+                // read in chunks of 2MB
                 chunks = Math.ceil(file.size / chunkSize),
                 currentChunk = 0,
                 spark = new SparkMD5.ArrayBuffer(),
@@ -280,8 +282,7 @@
                     //  log.innerHTML+="\nread chunk number "+parseInt(currentChunk+1)+" of "+chunks;
                     spark.append(e.target.result); // append array buffer
                     currentChunk++;
-                    if (currentChunk < chunks)
-                        loadNext();
+                    if (currentChunk < chunks) loadNext();
                     else {
                         app.$data.md5 = spark.end()
                     }
@@ -290,6 +291,7 @@
                 frOnerror = function () {
                     alert("\糟糕，好像哪里错了.");
                 };
+
             function loadNext() {
                 var fileReader = new FileReader();
                 fileReader.onload = frOnload;
@@ -301,6 +303,8 @@
 
             loadNext();
         });
+
+
     </script>
 </body>
 
