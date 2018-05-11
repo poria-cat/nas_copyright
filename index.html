@@ -48,7 +48,7 @@
                 </div>
             </section>
 
-            <div class="modal " v-bind:class="{ activeModal: afterStoreModal }">
+            <div class="modal afterStoreModal " id="afterStoreModal" v-bind:class="{ activeModal: afterStoreModal }">
                 <div class="modal-background"></div>
                 <div class="modal-card">
                     <header class="modal-card-head">
@@ -184,9 +184,9 @@
     <script src=lib/nebPay.js></script>
     <script src=lib/nebulas.js></script>
     <script>
+        //  document.getElementsByTagName('body')[0].classList.add("snow-container");
         var dappAddress = "n1n9pvPzXdHHLfB9Rt5JRLy8SFskm4NALkj"
         // var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
-
         var nebulas = require("nebulas"),
             Account = nebulas.Account,
             neb = new nebulas.Neb();
@@ -237,10 +237,12 @@
             methods: {
                 showAfterStoreModal: function () {
                     this.afterStoreModal = true
+                    document.getElementById("afterStoreModal").classList.add("is-active")
                 },
                 hideAfterStoreModal: function () {
                     this.id, this.title, this.md5, this.message = ""
                     this.afterStoreModal = false
+                    document.getElementById("afterStoreModal").classList.remove("is-active")
                 },
                 hideStore: function (event) {
                     // `this` 在方法里指向当前 Vue 实例
