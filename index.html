@@ -48,6 +48,25 @@
                 </div>
             </section>
 
+            <div class="modal is-active w-modal" id="wmModal">
+                    <div class="modal-background"></div>
+                    <div class="modal-card">
+                        <header class="modal-card-head">
+                            <p class="modal-card-title">注意：</p>
+                            <button class="delete" v-on:click="hideWelcomModal" aria-label="close"></button>
+                        </header>
+                        <section class="modal-card-body">
+                            <p>1. 请记得输入标题和选择文件（因为合约需要输入计算后的md5）</p>      
+                            <p>2. 正常情况下，将数据上传到星云链后会有一个显示版权ID的窗口，请记得保存你的ID</p>      
+                            <p>3. 如果出现意外情况，没有显示您的版权ID，可以<a href="https://explorer.nebulas.io/#/address/n1n9pvPzXdHHLfB9Rt5JRLy8SFskm4NALkj">在这里</a>根据合约参数查找 </p> 
+                        </section>
+                        <footer class="modal-card-foot">
+                            <button class="button is-success" v-on:click="hideWelcomModal">好的，我知道了</button>
+                            <!-- <button class="button">Cancel</button> -->
+                        </footer>
+                    </div>
+                </div>
+
             <div class="modal afterStoreModal " id="afterStoreModal" v-bind:class="{ activeModal: afterStoreModal }">
                 <div class="modal-background"></div>
                 <div class="modal-card">
@@ -186,6 +205,7 @@
     <script>
         //  document.getElementsByTagName('body')[0].classList.add("snow-container");
         var dappAddress = "n1n9pvPzXdHHLfB9Rt5JRLy8SFskm4NALkj"
+        
         // var dappAddress = "n1m1PtGQskZvmDjfEwySPyaBhgeYj6tvLyT"
         var nebulas = require("nebulas"),
             Account = nebulas.Account,
@@ -235,9 +255,15 @@
                 author: ""
             },
             methods: {
+                showWelcomModal: function() {
+                    document.getElementById("welcomModal").classList.add("is-active")
+                },
+                hideWelcomModal: function () {
+                    document.getElementById("wmModal").classList.remove("is-active")
+                },
                 showAfterStoreModal: function () {
                     this.afterStoreModal = true
-                    document.getElementById("afterStoreModal").classList.add("is-active")
+                    document.getElementById("welcomModal").classList.add("is-active")
                 },
                 hideAfterStoreModal: function () {
                     this.id, this.title, this.md5, this.message = ""
